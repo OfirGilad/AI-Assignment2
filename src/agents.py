@@ -41,11 +41,12 @@ class Agent:
         self.agent_idx = state.agent_idx
         self.agent_action = {
             "Human": self.human_action,
-            "Normal": self.stupid_greedy_action,
-            "Interfering": self.saboteur_action,
-            "Greedy": self.greedy_search_action,
-            "A Star": self.a_star_action,
-            "Real time A Star": self.real_time_a_star_action
+            "Normal": self.normal_action
+            # "Normal": self.stupid_greedy_action,
+            # "Interfering": self.saboteur_action,
+            # "Greedy": self.greedy_search_action,
+            # "A Star": self.a_star_action,
+            # "Real time A Star": self.real_time_a_star_action
         }
 
     def human_action(self):
@@ -60,129 +61,7 @@ class Agent:
 
         return self.state, "no-op"
 
-    def stupid_greedy_action(self):
-        # Update agent picked and delivered packages
-        self.state.update_agent_packages_status()
-
-        agent_data = self.state.agents[self.agent_idx]
-        search_algorithms = SearchAlgorithms(state=self.state)
-
-        traverse_actions = list()
-        # Find path for packages to deliver
-        if len(agent_data["packages"]) > 0:
-            for package in agent_data["packages"]:
-                step = search_algorithms.dijkstra_step(
-                    src=agent_data["location"],
-                    dest=package["deliver_to"],
-                    mode="Coords"
-                )
-                if step is not None:
-                    solution_cost, traverse_pos, step_cost = step
-                    traverse_actions.append(TraverseAction(
-                        solution_cost=solution_cost,
-                        traverse_pos=traverse_pos,
-                        step_cost=step_cost
-                    ))
-        # Find path for packages to collect
-        else:
-            for package in self.state.placed_packages:
-                step = search_algorithms.dijkstra_step(
-                    src=agent_data["location"],
-                    dest=package["package_at"],
-                    mode="Coords"
-                )
-                if step is not None:
-                    solution_cost, traverse_pos, step_cost = step
-                    traverse_actions.append(TraverseAction(
-                        solution_cost=solution_cost,
-                        traverse_pos=traverse_pos,
-                        step_cost=step_cost
-                    ))
-
-        if len(traverse_actions) == 0:
-            return self.state, "no-op"
-        else:
-            minimum_cost_action = min(traverse_actions)
-            next_traverse_pos = minimum_cost_action.traverse_pos
-            action_name = self.state.perform_agent_step(
-                current_vertex=agent_data["location"],
-                next_vertex=next_traverse_pos,
-                mode="Coords"
-            )
-            self.state.update_agent_packages_status()
-            return self.state, action_name
-
-    def saboteur_action(self):
-        agent_data = self.state.agents[self.agent_idx]
-        search_algorithms = SearchAlgorithms(state=self.state)
-        traverse_actions = list()
-        
-        # Find path a to a fragile edge
-        for edge in self.state.special_edges:
-            if edge["type"] == "fragile" and agent_data["location"] != edge["from"]:
-                step = search_algorithms.dijkstra_step(
-                    src=agent_data["location"],
-                    dest=edge["from"],
-                    mode="Coords"
-                )
-                if step is not None:
-                    solution_cost, traverse_pos, step_cost = step
-                    traverse_actions.append(TraverseAction(
-                        solution_cost=solution_cost,
-                        traverse_pos=traverse_pos,
-                        step_cost=step_cost
-                    ))
-            if edge["type"] == "fragile" and agent_data["location"] != edge["to"]:
-                step = search_algorithms.dijkstra_step(
-                    src=agent_data["location"],
-                    dest=edge["to"],
-                    mode="Coords"
-                )
-                if step is not None:
-                    solution_cost, traverse_pos, step_cost = step
-                    traverse_actions.append(TraverseAction(
-                        solution_cost=solution_cost,
-                        traverse_pos=traverse_pos,
-                        step_cost=step_cost
-                    ))    
-                    
-        if len(traverse_actions) == 0:
-            return self.state, "no-op"
-        else:
-            minimum_cost_action = min(traverse_actions)
-            next_traverse_pos = minimum_cost_action.traverse_pos
-            action_name = self.state.perform_agent_step(
-                current_vertex=agent_data["location"],
-                next_vertex=next_traverse_pos,
-                mode="Coords"
-            )
-            return self.state, action_name
-
-    def greedy_search_action(self):
-        T = 0.0
-
-        self.state.update_agent_packages_status()
-        node = Node(state=self.state)
-        node.expand()
-        print(f"Agent Search Time: {T}")
-
-        # Update clock time
-        self.state = self.state.clone_state(agent_idx=self.agent_idx, time_factor=T)
-        self.state.update_agent_packages_status()
-
-        # Handle Action
-        if len(node.get_children()) != 0:
-            best_node = min(node.get_children(), key=lambda child_node: child_node.h_value())
-            action = best_node.get_action()
-            agent_location = self.state.agents[self.agent_idx]["location"]
-            self.state.perform_agent_action(current_vertex=agent_location, action=action, mode="Coords")
-            self.state.update_agent_packages_status()
-        else:
-            action = "no-op"
-
-        return self.state, action
-
-    def a_star_action(self):
+    def normal_action(self):
         T = 0.0
 
         # Update state
@@ -210,34 +89,184 @@ class Agent:
 
         return self.state, action
 
-    def real_time_a_star_action(self):
-        T = 0.0
-        L = 10
-
-        # Update state
-        self.state.update_agent_packages_status()
-        node = Node(state=self.state)
-
-        informed_search_algorithms = InformedSearchAlgorithms(initial_node=node, is_limited=False, L=L, T=T)
-        a_star_res = informed_search_algorithms.A_star()
-        T = informed_search_algorithms.get_total_time()
-        print(f"Agent Search Time: {T}")
-        if a_star_res != "fail":
-            action = a_star_res
-        else:
-            action = "no-op"
-
-        # Update clock time
-        self.state = self.state.clone_state(agent_idx=self.agent_idx, time_factor=T)
-        self.state.update_agent_packages_status()
-
-        # Handle action
-        if action != "no-op":
-            agent_location = self.state.agents[self.agent_idx]["location"]
-            self.state.perform_agent_action(current_vertex=agent_location, action=action, mode="Coords")
-            self.state.update_agent_packages_status()
-
-        return self.state, a_star_res
+    # def stupid_greedy_action(self):
+    #     # Update agent picked and delivered packages
+    #     self.state.update_agent_packages_status()
+    #
+    #     agent_data = self.state.agents[self.agent_idx]
+    #     search_algorithms = SearchAlgorithms(state=self.state)
+    #
+    #     traverse_actions = list()
+    #     # Find path for packages to deliver
+    #     if len(agent_data["packages"]) > 0:
+    #         for package in agent_data["packages"]:
+    #             step = search_algorithms.dijkstra_step(
+    #                 src=agent_data["location"],
+    #                 dest=package["deliver_to"],
+    #                 mode="Coords"
+    #             )
+    #             if step is not None:
+    #                 solution_cost, traverse_pos, step_cost = step
+    #                 traverse_actions.append(TraverseAction(
+    #                     solution_cost=solution_cost,
+    #                     traverse_pos=traverse_pos,
+    #                     step_cost=step_cost
+    #                 ))
+    #     # Find path for packages to collect
+    #     else:
+    #         for package in self.state.placed_packages:
+    #             step = search_algorithms.dijkstra_step(
+    #                 src=agent_data["location"],
+    #                 dest=package["package_at"],
+    #                 mode="Coords"
+    #             )
+    #             if step is not None:
+    #                 solution_cost, traverse_pos, step_cost = step
+    #                 traverse_actions.append(TraverseAction(
+    #                     solution_cost=solution_cost,
+    #                     traverse_pos=traverse_pos,
+    #                     step_cost=step_cost
+    #                 ))
+    #
+    #     if len(traverse_actions) == 0:
+    #         return self.state, "no-op"
+    #     else:
+    #         minimum_cost_action = min(traverse_actions)
+    #         next_traverse_pos = minimum_cost_action.traverse_pos
+    #         action_name = self.state.perform_agent_step(
+    #             current_vertex=agent_data["location"],
+    #             next_vertex=next_traverse_pos,
+    #             mode="Coords"
+    #         )
+    #         self.state.update_agent_packages_status()
+    #         return self.state, action_name
+    #
+    # def saboteur_action(self):
+    #     agent_data = self.state.agents[self.agent_idx]
+    #     search_algorithms = SearchAlgorithms(state=self.state)
+    #     traverse_actions = list()
+    #
+    #     # Find path a to a fragile edge
+    #     for edge in self.state.special_edges:
+    #         if edge["type"] == "fragile" and agent_data["location"] != edge["from"]:
+    #             step = search_algorithms.dijkstra_step(
+    #                 src=agent_data["location"],
+    #                 dest=edge["from"],
+    #                 mode="Coords"
+    #             )
+    #             if step is not None:
+    #                 solution_cost, traverse_pos, step_cost = step
+    #                 traverse_actions.append(TraverseAction(
+    #                     solution_cost=solution_cost,
+    #                     traverse_pos=traverse_pos,
+    #                     step_cost=step_cost
+    #                 ))
+    #         if edge["type"] == "fragile" and agent_data["location"] != edge["to"]:
+    #             step = search_algorithms.dijkstra_step(
+    #                 src=agent_data["location"],
+    #                 dest=edge["to"],
+    #                 mode="Coords"
+    #             )
+    #             if step is not None:
+    #                 solution_cost, traverse_pos, step_cost = step
+    #                 traverse_actions.append(TraverseAction(
+    #                     solution_cost=solution_cost,
+    #                     traverse_pos=traverse_pos,
+    #                     step_cost=step_cost
+    #                 ))
+    #
+    #     if len(traverse_actions) == 0:
+    #         return self.state, "no-op"
+    #     else:
+    #         minimum_cost_action = min(traverse_actions)
+    #         next_traverse_pos = minimum_cost_action.traverse_pos
+    #         action_name = self.state.perform_agent_step(
+    #             current_vertex=agent_data["location"],
+    #             next_vertex=next_traverse_pos,
+    #             mode="Coords"
+    #         )
+    #         return self.state, action_name
+    #
+    # def greedy_search_action(self):
+    #     T = 0.0
+    #
+    #     self.state.update_agent_packages_status()
+    #     node = Node(state=self.state)
+    #     node.expand()
+    #     print(f"Agent Search Time: {T}")
+    #
+    #     # Update clock time
+    #     self.state = self.state.clone_state(agent_idx=self.agent_idx, time_factor=T)
+    #     self.state.update_agent_packages_status()
+    #
+    #     # Handle Action
+    #     if len(node.get_children()) != 0:
+    #         best_node = min(node.get_children(), key=lambda child_node: child_node.h_value())
+    #         action = best_node.get_action()
+    #         agent_location = self.state.agents[self.agent_idx]["location"]
+    #         self.state.perform_agent_action(current_vertex=agent_location, action=action, mode="Coords")
+    #         self.state.update_agent_packages_status()
+    #     else:
+    #         action = "no-op"
+    #
+    #     return self.state, action
+    #
+    # def a_star_action(self):
+    #     T = 0.0
+    #
+    #     # Update state
+    #     self.state.update_agent_packages_status()
+    #     node = Node(state=self.state)
+    #
+    #     informed_search_algorithms = InformedSearchAlgorithms(initial_node=node, is_limited=True, T=T)
+    #     a_star_res = informed_search_algorithms.A_star()
+    #     T = informed_search_algorithms.get_total_time()
+    #     print(f"Agent Search Time: {T}")
+    #     if a_star_res != "fail":
+    #         action = a_star_res
+    #     else:
+    #         action = "no-op"
+    #
+    #     # Update clock time
+    #     self.state = self.state.clone_state(agent_idx=self.agent_idx, time_factor=T)
+    #     self.state.update_agent_packages_status()
+    #
+    #     # Handle action
+    #     if action != "no-op":
+    #         agent_location = self.state.agents[self.agent_idx]["location"]
+    #         self.state.perform_agent_action(current_vertex=agent_location, action=action, mode="Coords")
+    #         self.state.update_agent_packages_status()
+    #
+    #     return self.state, action
+    #
+    # def real_time_a_star_action(self):
+    #     T = 0.0
+    #     L = 10
+    #
+    #     # Update state
+    #     self.state.update_agent_packages_status()
+    #     node = Node(state=self.state)
+    #
+    #     informed_search_algorithms = InformedSearchAlgorithms(initial_node=node, is_limited=False, L=L, T=T)
+    #     a_star_res = informed_search_algorithms.A_star()
+    #     T = informed_search_algorithms.get_total_time()
+    #     print(f"Agent Search Time: {T}")
+    #     if a_star_res != "fail":
+    #         action = a_star_res
+    #     else:
+    #         action = "no-op"
+    #
+    #     # Update clock time
+    #     self.state = self.state.clone_state(agent_idx=self.agent_idx, time_factor=T)
+    #     self.state.update_agent_packages_status()
+    #
+    #     # Handle action
+    #     if action != "no-op":
+    #         agent_location = self.state.agents[self.agent_idx]["location"]
+    #         self.state.perform_agent_action(current_vertex=agent_location, action=action, mode="Coords")
+    #         self.state.update_agent_packages_status()
+    #
+    #     return self.state, a_star_res
 
     def perform_action(self):
         agent_type = self.state.agents[self.agent_idx]["type"]

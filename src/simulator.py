@@ -4,7 +4,8 @@ from state import State
 
 class Simulator:
     def __init__(self, initial_state: State):
-        self.delivery_agents = ["Normal", "Greedy", "A Star", "Real time A Star"]
+        # self.delivery_agents = ["Normal", "Greedy", "A Star", "Real time A Star"]
+        self.delivery_agents = ["Normal"]
         self.no_op_count = 0
         self.normal_agents_count = len([
             agent for agent in initial_state.agents if agent["type"] in self.delivery_agents
@@ -60,7 +61,10 @@ class Simulator:
                 self.current_state = self.current_state.clone_state(agent_idx=agent_idx, time_factor=1)
                 self.current_state.update_packages_info()
                 print(f"# Clock Time {self.current_state.time}:")
-                agent_idx = (agent_idx + 1) % len(self.current_state.agents)
+            else:
+                print("Notice: Human action doesn't effect the Clock Time!")
+
+            agent_idx = (agent_idx + 1) % len(self.current_state.agents)
 
             # Rest no-op actions
             if agent_idx == 0:

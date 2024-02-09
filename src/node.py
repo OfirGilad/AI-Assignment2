@@ -7,11 +7,23 @@ from search_algorithms import SearchAlgorithms
 
 
 class Node:
-    def __init__(self, state: State, parent=None, action="no-op"):
+    def __init__(self, state: State, parent=None, action="no-op", node_type="max"):
+        # Supported game types
+        self.game_heuristic_types = {
+            "Adversarial (zero sum game)": self._adversarial_heuristic,
+            "A semi-cooperative game": self._semi_cooperative_heuristic,
+            "A fully cooperative game": self._fully_cooperative_heuristic
+        }
+
+        # Init Variables
         self.state = state
         self.agent_idx = state.agent_idx
         self.parent = parent
         self.children = list()
+
+        # Game support
+        self.game_type = state.game_type
+        self.node_type = node_type
 
         self.action = action
         self.depth = 0
@@ -58,6 +70,10 @@ class Node:
                         self.search_adjacency_matrix[point_1_index, point_2_index] = solution_cost
 
     def _calculate_heuristic_value(self):
+        # TODO: Implement the heuristic value calculation
+        self.game_heuristic_types[self.game_type]()
+
+        # TODO: To be removed
         agent_data = self.state.agents[self.agent_idx]
         interesting_packages = self.state.packages + self.state.placed_packages + agent_data["packages"]
 
@@ -110,7 +126,8 @@ class Node:
                 child = Node(
                     state=node_state,
                     parent=self,
-                    action=action
+                    action=action,
+                    node_type="min"
                 )
 
                 self.children.append(child)
@@ -146,6 +163,32 @@ class Node:
     #     return hash(str(self.state.adjacency_matrix)+ str(self.state.placed_packages)
     #                 + str(self.state.picked_packages) +str(self.state.archived_packages)
     #                 + str(self.state.special_edges)+ str(self.state.time))
+
+    def _adversarial_heuristic(self):
+        """
+        Adversarial (zero sum game): each agent aims to maximize its own individual score
+        (number of packages delivered on time) minus the opposing agent's score.
+        That is, TS1=IS1-IS2 and TS2=IS2-IS1.
+        Here you should implement an "optimal" agent, using mini-max, with alpha-beta pruning.
+        """
+        agent_data = self.state.agents[self.agent_idx]
+        rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
+
+    def _semi_cooperative_heuristic(self):
+        """
+        A semi-cooperative game: each agent tries to maximize its own individual score.
+        The agent disregards the other agent score, except that ties are broken cooperatively.
+        That is, TS1=IS1, breaking ties in favor of greater IS2.
+        """
+        agent_data = self.state.agents[self.agent_idx]
+        rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
+
+    def _fully_cooperative_heuristic(self):
+        """
+        A fully cooperative game: both agents aim to maximize the sum of individual scores, so TS1=TS2=IS1+IS2.
+        """
+        agent_data = self.state.agents[self.agent_idx]
+        rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
 
 
 def test_node_creation():
