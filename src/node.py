@@ -186,12 +186,23 @@ class Node:
         agent_data = self.state.agents[self.agent_idx]
         rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
 
+        # TODO: Find a way to break ties in favor of greater IS2
+        game_algorithms = GameAlgorithms()
+        agent_score = game_algorithms.alpha_beta_decision(state=self.state)
+        print(f"My Prev Action: ({self.action}, {self.depth})")
+        print(f"What should I do: {agent_score}")
+
     def _fully_cooperative_heuristic(self):
         """
         A fully cooperative game: both agents aim to maximize the sum of individual scores, so TS1=TS2=IS1+IS2.
         """
         agent_data = self.state.agents[self.agent_idx]
         rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
+
+        game_algorithms = GameAlgorithms()
+        agent_score = game_algorithms.alpha_beta_decision(state=self.state)
+        print(f"My Prev Action: ({self.action}, {self.depth})")
+        print(f"What should I do: {agent_score}")
 
 
 def test_node_creation():
