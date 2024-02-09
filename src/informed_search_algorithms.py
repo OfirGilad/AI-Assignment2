@@ -27,7 +27,7 @@ class InformedSearchAlgorithms:
             
             # A* = > Check if goal state = current node's state
             # Realtime A* => The above or check if L expansions were done.
-            if self.is_goal_state(current_node.state) or self.NumOfExpansions == self.L:
+            if current_node.state.is_goal_state() or self.NumOfExpansions == self.L:
                 # One of the condition is met => return move decision
                 if current_node.get_parent() is None:
                     # If the last node is the root node
@@ -49,12 +49,7 @@ class InformedSearchAlgorithms:
             for child in children:
                 self.SearchManager.ChildrenHandler(child)
            
-        return "fail"   
-
-    @staticmethod
-    def is_goal_state(state: State):
-        return (len(state.packages) == 0 and len(state.placed_packages) == 0 
-                and len(state.picked_packages) == 0)
+        return "fail"
 
     def get_total_time(self):
         return self.NumOfExpansions * self.T

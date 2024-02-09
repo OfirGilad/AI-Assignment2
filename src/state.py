@@ -4,13 +4,20 @@ from copy import deepcopy
 
 class State:
     def __init__(self, environment_data: dict):
+        # Game support
+        self.game_heuristic_types = {
+            "Adversarial (zero sum game)": self._adversarial_score,
+            "A semi-cooperative game": self._semi_cooperative_score,
+            "A fully cooperative game": self._fully_cooperative_score
+        }
+        self.game_type = environment_data.get("game_type", "Adversarial (zero sum game)")
+
         # Parse state initial parameters
         self.X = environment_data["x"] + 1
         self.Y = environment_data["y"] + 1
         self.packages = environment_data.get("packages", list())
         self.special_edges = environment_data.get("special_edges", list())
         self.agents = environment_data.get("agents", list())
-        self.game_type = environment_data.get("game_type", "Adversarial (zero sum game)")
 
         # Build state graph
         self.total_vertices = self.X * self.Y
@@ -251,6 +258,27 @@ class State:
             raise ValueError(f"Invalid action: {action}")
 
         self.perform_agent_step(current_vertex, next_vertex, mode=mode)
+
+    def is_goal_state(self):
+        return len(self.packages) == 0 and len(self.placed_packages) == 0 and len(self.picked_packages) == 0
+
+    def _adversarial_score(self):
+        agent_score = self.agents[self.agent_idx]["score"]
+        rival_agent_score = self.agents[(self.agent_idx + 1) % 2]["score"]
+        return agent_score - rival_agent_score
+
+    def _semi_cooperative_score(self):
+        agent_score = self.agents[self.agent_idx]["score"]
+        # rival_agent_score = self.agents[(self.agent_idx + 1) % 2]["score"]
+        return agent_score
+
+    def _fully_cooperative_score(self):
+        agent_score = self.agents[self.agent_idx]["score"]
+        rival_agent_score = self.agents[(self.agent_idx + 1) % 2]["score"]
+        return agent_score + rival_agent_score
+
+    def game_mode_score(self):
+        return self.game_heuristic_types[self.game_type]()
 
     def __str__(self):
         # Coordinates

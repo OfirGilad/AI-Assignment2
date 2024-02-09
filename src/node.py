@@ -4,26 +4,24 @@ import numpy as np
 
 from state import State
 from search_algorithms import SearchAlgorithms
+from game_algorithms import GameAlgorithms
 
 
 class Node:
-    def __init__(self, state: State, parent=None, action="no-op", node_type="max"):
-        # Supported game types
+    def __init__(self, state: State, parent=None, action="no-op"):
+        # Game support
         self.game_heuristic_types = {
             "Adversarial (zero sum game)": self._adversarial_heuristic,
             "A semi-cooperative game": self._semi_cooperative_heuristic,
             "A fully cooperative game": self._fully_cooperative_heuristic
         }
+        self.game_type = state.game_type
 
         # Init Variables
         self.state = state
         self.agent_idx = state.agent_idx
         self.parent = parent
         self.children = list()
-
-        # Game support
-        self.game_type = state.game_type
-        self.node_type = node_type
 
         self.action = action
         self.depth = 0
@@ -32,9 +30,8 @@ class Node:
         self.search_adjacency_matrix = None
         self.search_adjacency_matrix_mst = None
 
-        self._calculate_heuristic_value()
-        self.total_cost = self.heuristic_value
         self._read_parent_data()
+        self._calculate_heuristic_value()
 
         self.isInOpenList = False
         self.indexInOpenList = -1
@@ -47,9 +44,8 @@ class Node:
 
     def _read_parent_data(self):
         if self.parent is not None:
-            self.depth += self.parent.depth
+            self.depth = self.parent.depth + 1
             self.path_cost += self.parent.path_cost + self._calculate_action_cost()
-            self.total_cost = self.path_cost + self.heuristic_value
 
     def _build_search_adjacency_matrix(self, points_of_interest: list):
         total_vertices = self.state.total_vertices
@@ -71,7 +67,10 @@ class Node:
 
     def _calculate_heuristic_value(self):
         # TODO: Implement the heuristic value calculation
-        self.game_heuristic_types[self.game_type]()
+        if self.state.is_goal_state():
+            self.heuristic_value = 0
+        else:
+            self.game_heuristic_types[self.game_type]()
 
         # TODO: To be removed
         agent_data = self.state.agents[self.agent_idx]
@@ -126,8 +125,7 @@ class Node:
                 child = Node(
                     state=node_state,
                     parent=self,
-                    action=action,
-                    node_type="min"
+                    action=action
                 )
 
                 self.children.append(child)
@@ -139,7 +137,7 @@ class Node:
         return self.path_cost
 
     def f_value(self):
-        return self.total_cost
+        return self.path_cost + self.heuristic_value
 
     def get_children(self):
         return self.children
@@ -173,6 +171,11 @@ class Node:
         """
         agent_data = self.state.agents[self.agent_idx]
         rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
+
+        game_algorithms = GameAlgorithms()
+        agent_score = game_algorithms.alpha_beta_decision(state=self.state)
+        print(f"My Prev Action: ({self.action}, {self.depth})")
+        print(f"What should I do: {agent_score}")
 
     def _semi_cooperative_heuristic(self):
         """
