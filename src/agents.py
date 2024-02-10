@@ -167,10 +167,10 @@ class Agent:
         game_node = GameNode(state=self.state)
 
         game_algorithms = GameAlgorithms(agent_idx=self.agent_idx)
-        action, _ = game_algorithms.alpha_beta_decision(game_node=game_node)
+        action = game_algorithms.alpha_beta_decision(game_node=game_node)
 
         # Update clock time
-        self.state = self.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
+        self.state = self.state.clone_state(agent_idx=self.agent_idx)
         self.state.update_agent_packages_status()
 
         # Handle action
