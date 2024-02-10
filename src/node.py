@@ -1,22 +1,11 @@
 import numpy as np
-# from scipy.sparse import csr_matrix
-# from scipy.sparse.csgraph import minimum_spanning_tree
 
 from state import State
 from search_algorithms import SearchAlgorithms
-from game_algorithms import GameAlgorithms
 
 
 class Node:
     def __init__(self, state: State, parent=None, action="no-op"):
-        # Game support
-        self.game_heuristic_types = {
-            "Adversarial (zero sum game)": self._adversarial_heuristic,
-            "A semi-cooperative game": self._semi_cooperative_heuristic,
-            "A fully cooperative game": self._fully_cooperative_heuristic
-        }
-        self.game_type = state.game_type
-
         # Init Variables
         self.state = state
         self.agent_idx = state.agent_idx
@@ -66,13 +55,6 @@ class Node:
                         self.search_adjacency_matrix[point_1_index, point_2_index] = solution_cost
 
     def _calculate_heuristic_value(self):
-        # TODO: Implement the heuristic value calculation
-        if self.state.is_goal_state():
-            self.heuristic_value = 0
-        else:
-            self.game_heuristic_types[self.game_type]()
-
-        # TODO: To be removed
         agent_data = self.state.agents[self.agent_idx]
         interesting_packages = self.state.packages + self.state.placed_packages + agent_data["packages"]
 
@@ -150,59 +132,6 @@ class Node:
     
     def __lt__(self, other):
         return self.f_value() < other.f_value()
-
-    # def __eq__(self, other):
-    #     return  (self.state.adjacency_matrix == other.state.adjacency_matrix
-    #     and self.state.placed_packages == other.state.placed_packages 
-    #     and self.state.picked_packages == other.state.picked_packages 
-    #     and self.state.archived_packages == other.state.archived_packages)
-
-    # def __hash__(self):
-    #     return hash(str(self.state.adjacency_matrix)+ str(self.state.placed_packages)
-    #                 + str(self.state.picked_packages) +str(self.state.archived_packages)
-    #                 + str(self.state.special_edges)+ str(self.state.time))
-
-    def _adversarial_heuristic(self):
-        """
-        Adversarial (zero sum game): each agent aims to maximize its own individual score
-        (number of packages delivered on time) minus the opposing agent's score.
-        That is, TS1=IS1-IS2 and TS2=IS2-IS1.
-        Here you should implement an "optimal" agent, using mini-max, with alpha-beta pruning.
-        """
-        agent_data = self.state.agents[self.agent_idx]
-        rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
-
-        game_algorithms = GameAlgorithms()
-        agent_score = game_algorithms.alpha_beta_decision(state=self.state)
-        print(f"My Prev Action: ({self.action}, {self.depth})")
-        print(f"What should I do: {agent_score}")
-
-    def _semi_cooperative_heuristic(self):
-        """
-        A semi-cooperative game: each agent tries to maximize its own individual score.
-        The agent disregards the other agent score, except that ties are broken cooperatively.
-        That is, TS1=IS1, breaking ties in favor of greater IS2.
-        """
-        agent_data = self.state.agents[self.agent_idx]
-        rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
-
-        # TODO: Find a way to break ties in favor of greater IS2
-        game_algorithms = GameAlgorithms()
-        agent_score = game_algorithms.alpha_beta_decision(state=self.state)
-        print(f"My Prev Action: ({self.action}, {self.depth})")
-        print(f"What should I do: {agent_score}")
-
-    def _fully_cooperative_heuristic(self):
-        """
-        A fully cooperative game: both agents aim to maximize the sum of individual scores, so TS1=TS2=IS1+IS2.
-        """
-        agent_data = self.state.agents[self.agent_idx]
-        rival_agent_data = self.state.agents[(self.agent_idx + 1) % 2]
-
-        game_algorithms = GameAlgorithms()
-        agent_score = game_algorithms.alpha_beta_decision(state=self.state)
-        print(f"My Prev Action: ({self.action}, {self.depth})")
-        print(f"What should I do: {agent_score}")
 
 
 def test_node_creation():

@@ -7,9 +7,10 @@ class Parser:
             "packages": list(),
             "special_edges": list(),
             "agents": list(),
-            "game_type": "Adversarial (zero sum game)"
+            "game_type": "Normal"
         }
         self.game_types = {
+            "0": "Normal",
             "1": "Adversarial (zero sum game)",
             "2": "A semi-cooperative game",
             "3": "A fully cooperative game"
@@ -22,7 +23,7 @@ class Parser:
             "#F": self._handle_f,
             "#A": self._handle_a,
             "#H": self._handle_h,
-            # "#I": self._handle_i,
+            "#I": self._handle_i,
             # "#A1": self._handle_a1,
             # "#A2": self._handle_a2,
             # "#A3": self._handle_a3,

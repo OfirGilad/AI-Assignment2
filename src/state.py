@@ -5,12 +5,13 @@ from copy import deepcopy
 class State:
     def __init__(self, environment_data: dict):
         # Game support
-        self.game_heuristic_types = {
+        self.game_score_types = {
+            "Normal": self._normal_score,
             "Adversarial (zero sum game)": self._adversarial_score,
             "A semi-cooperative game": self._semi_cooperative_score,
             "A fully cooperative game": self._fully_cooperative_score
         }
-        self.game_type = environment_data.get("game_type", "Adversarial (zero sum game)")
+        self.game_type = environment_data.get("game_type", "Normal")
 
         # Parse state initial parameters
         self.X = environment_data["x"] + 1
@@ -262,23 +263,26 @@ class State:
     def is_goal_state(self):
         return len(self.packages) == 0 and len(self.placed_packages) == 0 and len(self.picked_packages) == 0
 
-    def _adversarial_score(self):
-        agent_score = self.agents[self.agent_idx]["score"]
-        rival_agent_score = self.agents[(self.agent_idx + 1) % 2]["score"]
+    def _normal_score(self, agent_idx: int):
+        raise ValueError("Score is not available in this game mode")
+
+    def _adversarial_score(self, agent_idx: int):
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
         return agent_score - rival_agent_score
 
-    def _semi_cooperative_score(self):
-        agent_score = self.agents[self.agent_idx]["score"]
-        # rival_agent_score = self.agents[(self.agent_idx + 1) % 2]["score"]
+    def _semi_cooperative_score(self, agent_idx: int):
+        agent_score = self.agents[agent_idx]["score"]
+        # rival_agent_score = self.agents[(self.game_agent_idx + 1) % 2]["score"]
         return agent_score
 
-    def _fully_cooperative_score(self):
-        agent_score = self.agents[self.agent_idx]["score"]
-        rival_agent_score = self.agents[(self.agent_idx + 1) % 2]["score"]
+    def _fully_cooperative_score(self, agent_idx: int = 0):
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
         return agent_score + rival_agent_score
 
-    def game_mode_score(self):
-        return self.game_heuristic_types[self.game_type]()
+    def game_mode_score(self, agent_idx: int):
+        return self.game_score_types[self.game_type](agent_idx=agent_idx)
 
     def __str__(self):
         # Coordinates
@@ -339,15 +343,15 @@ class State:
                     f"Number of actions: {a_actions}, "
                     f"Score: {a_score}\n"
                 )
-            # elif agent["type"] == "Interfering":
-            #     a_location = agent["location"]
-            #     a_actions = agent["number_of_actions"]
-            #     print_data += (
-            #         f"#A 2  L ({a_location[0]},{a_location[1]})  A {a_actions} ; "
-            #         f"Agent {agent_idx}: Interfering Agent, "
-            #         f"Location: ({a_location[0]},{a_location[1]}), "
-            #         f"Number of Actions: {a_actions}\n"
-            #     )
+            elif agent["type"] == "Interfering":
+                a_location = agent["location"]
+                a_actions = agent["number_of_actions"]
+                print_data += (
+                    f"#A 2  L ({a_location[0]},{a_location[1]})  A {a_actions} ; "
+                    f"Agent {agent_idx}: Interfering Agent, "
+                    f"Location: ({a_location[0]},{a_location[1]}), "
+                    f"Number of Actions: {a_actions}\n"
+                )
             # elif agent["type"] == "Greedy":
             #     a_location = agent["location"]
             #     a_score = agent["score"]
