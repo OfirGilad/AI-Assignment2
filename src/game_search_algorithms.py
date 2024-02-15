@@ -6,7 +6,12 @@ from game_node import GameNode
 class GameAlgorithms:
     def __init__(self, agent_idx: int):
         self.agent_idx = agent_idx
+        self.rival_agent_idx = (self.agent_idx + 1) % 2
+        self.semi_cooperative = False
 
+    ###############
+    # Adversarial #
+    ###############
     def alpha_beta_decision(self, game_node: GameNode) -> str:
         alpha = -np.inf
         beta = np.inf
@@ -60,22 +65,72 @@ class GameAlgorithms:
 
         return min_value
 
-    # TODO: check if needs to be different then fully
+    ####################
+    # Semi Cooperative #
+    ####################
     def semi_cooperative_decision(self, game_node: GameNode) -> str:
-        global_max_value = -np.inf
-        global_max_action = "no-op"
+        max_dict = {
+            self.agent_idx: -np.inf,
+            self.rival_agent_idx: -np.inf
+        }
+        max_action = "no-op"
         game_node.expand()
         for child in game_node.children:
             action = child.action
+            min_dict = self.min_value_semi_cooperative(game_node=child)
+            if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
+                max_action = action
+                max_dict = min_dict
+            elif min_dict[self.agent_idx] == max_dict[self.agent_idx] and max_dict[self.rival_agent_idx] < min_dict[self.rival_agent_idx]:
+                # Tie breaker
+                max_action = action
+                max_dict[self.rival_agent_idx] = min_dict[self.rival_agent_idx]
 
-            max_value = self.max_max_value(game_node=child)
-            if global_max_value < max_value:
-                global_max_action = action
-                global_max_value = max_value
+        return max_action
 
-        return global_max_action
+    def max_value_semi_cooperative(self, game_node: GameNode) -> dict:
+        if game_node.state.is_goal_state():
+            max_dict = game_node.state.game_mode_score(agent_idx=self.agent_idx)
+            return max_dict
 
-    # TODO: check if needs to be different then semi
+        max_dict = {
+            self.agent_idx: -np.inf,
+            self.rival_agent_idx: -np.inf
+        }
+        game_node.expand()
+        for child in game_node.children:
+            min_dict = self.min_value_semi_cooperative(game_node=child)
+            if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
+                max_dict = min_dict
+            elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
+                # Tie breaker
+                max_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
+
+        return max_dict
+
+    def min_value_semi_cooperative(self, game_node: GameNode) -> dict:
+        if game_node.state.is_goal_state():
+            min_dict = game_node.state.game_mode_score(agent_idx=self.agent_idx)
+            return min_dict
+
+        min_dict = {
+            self.agent_idx: -np.inf,
+            self.rival_agent_idx: -np.inf
+        }
+        game_node.expand()
+        for child in game_node.children:
+            max_dict = self.max_value_semi_cooperative(game_node=child)
+            if min_dict[self.agent_idx] < max_dict[self.agent_idx]:
+                min_dict = max_dict
+            elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
+                # Tie breaker
+                min_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
+
+        return min_dict
+
+    #####################
+    # Fully Cooperative #
+    #####################
     def fully_cooperative_decision(self, game_node: GameNode) -> str:
         global_max_value = -np.inf
         global_max_action = "no-op"

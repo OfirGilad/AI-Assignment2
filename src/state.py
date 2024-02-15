@@ -148,7 +148,7 @@ class State:
         if mode == "Coords":
             current_vertex_index = self.coordinates_to_vertex_index(coords=current_vertex)
             next_vertex_index = self.coordinates_to_vertex_index(coords=next_vertex)
-            
+
         # The input vertices are indices of the vertices on the graph
         elif mode == "Indices":
             current_vertex_index = current_vertex
@@ -274,7 +274,11 @@ class State:
     def _semi_cooperative_score(self, agent_idx: int):
         agent_score = self.agents[agent_idx]["score"]
         rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
-        return agent_score + 0.5 * rival_agent_score
+        score_dict = {
+            agent_idx: agent_score,
+            (agent_idx + 1) % 2: rival_agent_score
+        }
+        return score_dict
 
     def _fully_cooperative_score(self, agent_idx: int = 0):
         agent_score = self.agents[agent_idx]["score"]
@@ -390,7 +394,7 @@ class State:
 
         print_data += "\n"
         print_data += f"#T {self.time} ; Total Time unit passed: {self.time}"
-       
+
         return print_data
 
     def clone_state(self, agent_idx: int, time_factor: float = 0):
