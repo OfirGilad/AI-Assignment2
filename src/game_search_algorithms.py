@@ -59,3 +59,46 @@ class GameAlgorithms:
             beta = min(beta, min_value)
 
         return min_value
+
+    # TODO: check if needs to be different then fully
+    def semi_cooperative_decision(self, game_node: GameNode) -> str:
+        global_max_value = -np.inf
+        global_max_action = "no-op"
+        game_node.expand()
+        for child in game_node.children:
+            action = child.action
+
+            max_value = self.max_max_value(game_node=child)
+            if global_max_value < max_value:
+                global_max_action = action
+                global_max_value = max_value
+
+        return global_max_action
+
+    # TODO: check if needs to be different then semi
+    def fully_cooperative_decision(self, game_node: GameNode) -> str:
+        global_max_value = -np.inf
+        global_max_action = "no-op"
+        game_node.expand()
+        for child in game_node.children:
+            action = child.action
+
+            max_value = self.max_max_value(game_node=child)
+            if global_max_value < max_value:
+                global_max_action = action
+                global_max_value = max_value
+
+        return global_max_action
+
+    def max_max_value(self, game_node: GameNode) -> int:
+        if game_node.state.is_goal_state():
+            max_max_value = game_node.state.game_mode_score(agent_idx=game_node.state.agent_idx)
+            return max_max_value
+
+        max_max_value = -np.inf
+        game_node.expand()
+        for child in game_node.children:
+            max_value = self.max_max_value(game_node=child)
+            max_max_value = max(max_max_value, max_value)
+
+        return max_max_value

@@ -169,10 +169,6 @@ class Agent:
         game_algorithms = GameAlgorithms(agent_idx=self.agent_idx)
         action = game_algorithms.alpha_beta_decision(game_node=game_node)
 
-        # Update clock time
-        self.state = self.state.clone_state(agent_idx=self.agent_idx)
-        self.state.update_agent_packages_status()
-
         # Handle action
         if action != "no-op":
             agent_location = self.state.agents[self.agent_idx]["location"]
@@ -195,7 +191,20 @@ class Agent:
         if game_validation:
             raise ValueError("A semi-cooperative game only supports two normal agents")
 
-        pass
+        # Update state
+        self.state.update_agent_packages_status()
+        game_node = GameNode(state=self.state)
+
+        game_algorithms = GameAlgorithms(agent_idx=self.agent_idx)
+        action = game_algorithms.semi_cooperative_decision(game_node=game_node)
+
+        # Handle action
+        if action != "no-op":
+            agent_location = self.state.agents[self.agent_idx]["location"]
+            self.state.perform_agent_action(current_vertex=agent_location, action=action, mode="Coords")
+            self.state.update_agent_packages_status()
+
+        return action
 
     def _fully_cooperative_game_type_action(self):
         """
@@ -209,7 +218,20 @@ class Agent:
         if game_validation:
             raise ValueError("A fully cooperative game only supports two normal agents")
 
-        pass
+        # Update state
+        self.state.update_agent_packages_status()
+        game_node = GameNode(state=self.state)
+
+        game_algorithms = GameAlgorithms(agent_idx=self.agent_idx)
+        action = game_algorithms.fully_cooperative_decision(game_node=game_node)
+
+        # Handle action
+        if action != "no-op":
+            agent_location = self.state.agents[self.agent_idx]["location"]
+            self.state.perform_agent_action(current_vertex=agent_location, action=action, mode="Coords")
+            self.state.update_agent_packages_status()
+
+        return action
 
     def normal_action(self):
         action = self.game_type_action[self.state.game_type]()
