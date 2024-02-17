@@ -46,6 +46,20 @@ class GameAlgorithms:
             alpha = max(alpha, max_value)
 
         # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+        if len(game_node.children) == 0:
+            node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
+            node_state.update_agent_packages_status()
+
+            node_state.agent_idx = (node_state.agent_idx + 1) % 2
+            child = GameNode(
+                state=node_state,
+                parent=game_node,
+                action="no-op",
+                node_type="min" if game_node.node_type == "max" else "max"
+            )
+
+            min_value = self.min_value(game_node=child, alpha=alpha, beta=beta)
+            max_value = max(max_value, min_value)
 
         return max_value
 
@@ -66,6 +80,20 @@ class GameAlgorithms:
             beta = min(beta, min_value)
 
         # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+        if len(game_node.children) == 0:
+            node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
+            node_state.update_agent_packages_status()
+
+            node_state.agent_idx = (node_state.agent_idx + 1) % 2
+            child = GameNode(
+                state=node_state,
+                parent=game_node,
+                action="no-op",
+                node_type="min" if game_node.node_type == "max" else "max"
+            )
+
+            max_value = self.max_value(game_node=child, alpha=alpha, beta=beta)
+            min_value = min(min_value, max_value)
 
         return min_value
 
@@ -111,6 +139,24 @@ class GameAlgorithms:
                 max_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
 
         # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+        if len(game_node.children) == 0:
+            node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
+            node_state.update_agent_packages_status()
+
+            node_state.agent_idx = (node_state.agent_idx + 1) % 2
+            child = GameNode(
+                state=node_state,
+                parent=game_node,
+                action="no-op",
+                node_type="min" if game_node.node_type == "max" else "max"
+            )
+
+            min_dict = self.min_value_semi_cooperative(game_node=child)
+            if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
+                max_dict = min_dict
+            elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
+                # Tie breaker
+                max_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
 
         return max_dict
 
@@ -133,6 +179,24 @@ class GameAlgorithms:
                 min_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
 
         # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+        if len(game_node.children) == 0:
+            node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
+            node_state.update_agent_packages_status()
+
+            node_state.agent_idx = (node_state.agent_idx + 1) % 2
+            child = GameNode(
+                state=node_state,
+                parent=game_node,
+                action="no-op",
+                node_type="min" if game_node.node_type == "max" else "max"
+            )
+
+            max_dict = self.max_value_semi_cooperative(game_node=child)
+            if min_dict[self.agent_idx] < max_dict[self.agent_idx]:
+                min_dict = max_dict
+            elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
+                # Tie breaker
+                min_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
 
         return min_dict
 
@@ -151,8 +215,6 @@ class GameAlgorithms:
                 global_max_action = action
                 global_max_value = max_value
 
-        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
-
         return global_max_action
 
     def max_max_value(self, game_node: GameNode) -> int:
@@ -167,5 +229,19 @@ class GameAlgorithms:
             max_max_value = max(max_max_value, max_value)
 
         # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+        if len(game_node.children) == 0:
+            node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
+            node_state.update_agent_packages_status()
+
+            node_state.agent_idx = (node_state.agent_idx + 1) % 2
+            child = GameNode(
+                state=node_state,
+                parent=game_node,
+                action="no-op",
+                node_type="min" if game_node.node_type == "max" else "max"
+            )
+
+            max_value = self.max_max_value(game_node=child)
+            max_max_value = max(max_max_value, max_value)
 
         return max_max_value
