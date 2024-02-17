@@ -1,0 +1,2 @@
+For the given input.txt, the results for each agent type are:
+
