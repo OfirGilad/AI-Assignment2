@@ -80,7 +80,7 @@ class State:
         self._apply_special_edges()
 
     def update_packages_info(self):
-        current_packages = self.packages
+        current_packages = deepcopy(self.packages)
         for package in current_packages:
             if package["from_time"] <= self.time:
                 self.packages.remove(package)
@@ -89,7 +89,7 @@ class State:
 
                 self.placed_packages.append(package)
 
-        current_placed_packages = self.placed_packages
+        current_placed_packages = deepcopy(self.placed_packages)
         for package in current_placed_packages:
             if package["before_time"] <= self.time:
                 self.placed_packages.remove(package)
@@ -98,7 +98,7 @@ class State:
 
                 self.archived_packages.append(package)
 
-        current_picked_packages = self.picked_packages
+        current_picked_packages = deepcopy(self.picked_packages)
         for package in current_picked_packages:
             if package["before_time"] <= self.time:
                 self.picked_packages.remove(package)
@@ -115,7 +115,7 @@ class State:
 
     def update_agent_packages_status(self):
         agent_data = self.agents[self.agent_idx]
-        current_placed_packages = self.placed_packages
+        current_placed_packages = deepcopy(self.placed_packages)
         for package in current_placed_packages:
             if package["package_at"] == agent_data["location"]:
                 self.placed_packages.remove(package)
@@ -126,7 +126,7 @@ class State:
                 agent_data["packages"].append(package)
                 self.picked_packages.append(package)
 
-        current_pickup_packages = self.picked_packages
+        current_pickup_packages = deepcopy(self.picked_packages)
         for package in current_pickup_packages:
             # Skip packages not picked by this agent
             if package["holder_agent_id"] != self.agent_idx:
