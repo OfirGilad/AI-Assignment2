@@ -1,0 +1,21 @@
+#X 2                ; Maximum x coordinate
+#Y 2                ; Maximum y coordinate
+#P 0 1 0  D 1 1 50  ; Package at (0,1) from time 0, deliver to (1,1) on or before time 50
+#P 1 0 0  D 2 0 50  ; X
+#P 1 2 0  D 2 2 50  ; X
+#P 2 2 0  D 1 1 50  ; X
+
+#B 1 0 1 1          ; Edge from (1,0) to (1,1) is always blocked
+#B 2 0 2 1          ; X
+#B 1 1 1 2          ; X
+
+#F 0 0 0 1          ; Edge from (0,0) to (0,1) is fragile (can only be traversed once)
+#F 0 0 1 0          ; X
+#F 0 2 1 2          ; X
+#F 1 2 2 2          ; X
+#F 2 1 2 2          ; X
+#F 1 1 2 1          ; X
+#A 0 0              ; Normal agent starts at (0,0)
+#A 0 2              ; Normal agent starts at (0,2)
+
+#G 1                ; Game type 1 Adversarial (zero sum game)

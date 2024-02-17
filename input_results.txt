@@ -1,2 +1,7 @@
 For the given input.txt, the results for each agent type are:
 
+Expected results for input_game.txt:
+
+Adversarial: (1,1)
+Semi-Cooperative: (1,2)
+Fully-Cooperative: (1,3)

@@ -45,6 +45,8 @@ class GameAlgorithms:
                 return max_value
             alpha = max(alpha, max_value)
 
+        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+
         return max_value
 
     def min_value(self, game_node: GameNode, alpha, beta) -> int:
@@ -62,6 +64,8 @@ class GameAlgorithms:
             if min_value <= alpha:
                 return min_value
             beta = min(beta, min_value)
+
+        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
 
         return min_value
 
@@ -106,6 +110,8 @@ class GameAlgorithms:
                 # Tie breaker
                 max_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
 
+        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+
         return max_dict
 
     def min_value_semi_cooperative(self, game_node: GameNode) -> dict:
@@ -126,6 +132,8 @@ class GameAlgorithms:
                 # Tie breaker
                 min_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
 
+        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+
         return min_dict
 
     #####################
@@ -143,6 +151,8 @@ class GameAlgorithms:
                 global_max_action = action
                 global_max_value = max_value
 
+        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+
         return global_max_action
 
     def max_max_value(self, game_node: GameNode) -> int:
@@ -155,5 +165,7 @@ class GameAlgorithms:
         for child in game_node.children:
             max_value = self.max_max_value(game_node=child)
             max_max_value = max(max_max_value, max_value)
+
+        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
 
         return max_max_value

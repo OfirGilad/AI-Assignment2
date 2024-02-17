@@ -16,7 +16,7 @@ def run(data_filepath: str):
 def main():
     # TODO: Fill the data_filepath parameter
     # data_filepath = "../input/input.txt"
-    data_filepath = "../input/input_adversarial.txt"
+    data_filepath = "../input/input_game.txt"
     run(data_filepath=data_filepath)
 
 

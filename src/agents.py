@@ -155,9 +155,9 @@ class Agent:
         Here you should implement an "optimal" agent, using mini-max, with alpha-beta pruning.
         """
         game_validation = (
-                len(self.state.agents) != 2 or
-                self.state.agents[0]["type"] != "Normal" or
-                self.state.agents[1]["type"] != "Normal"
+            len(self.state.agents) != 2 or
+            self.state.agents[0]["type"] != "Normal" or
+            self.state.agents[1]["type"] != "Normal"
         )
         if game_validation:
             raise ValueError("Adversarial (zero sum game) only supports two normal agents")
@@ -211,9 +211,9 @@ class Agent:
         A fully cooperative game: both agents aim to maximize the sum of individual scores, so TS1=TS2=IS1+IS2.
         """
         game_validation = (
-                len(self.state.agents) != 2 or
-                self.state.agents[0]["type"] != "Normal" or
-                self.state.agents[1]["type"] != "Normal"
+            len(self.state.agents) != 2 or
+            self.state.agents[0]["type"] != "Normal" or
+            self.state.agents[1]["type"] != "Normal"
         )
         if game_validation:
             raise ValueError("A fully cooperative game only supports two normal agents")
