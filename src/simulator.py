@@ -39,11 +39,12 @@ class Simulator:
     def run(self):
         agent_idx = 0
         print("# Clock Time 0.0:")
-        while True:
-            # Check if goal achieved
-            if self._goal_achieved():
-                break
 
+        # Check if goal achieved
+        if self._goal_achieved():
+            return
+
+        while True:
             # Perform Agent Action
             self.current_state = self.current_state.clone_state(agent_idx=agent_idx)
             current_agent = Agent(state=self.current_state)
@@ -65,6 +66,10 @@ class Simulator:
                 print("Notice: Human action doesn't effect the Clock Time!")
 
             agent_idx = (agent_idx + 1) % len(self.current_state.agents)
+
+            # Check if goal achieved
+            if self._goal_achieved():
+                return
 
             # Rest no-op actions
             if agent_idx == 0:

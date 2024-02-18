@@ -11,6 +11,12 @@ class State:
             "A semi-cooperative game": self._semi_cooperative_score,
             "A fully cooperative game": self._fully_cooperative_score
         }
+        self.game_type_to_idx = {
+            "Normal": 0,
+            "Adversarial (zero sum game)": 1,
+            "A semi-cooperative game": 2,
+            "A fully cooperative game": 3
+        }
         self.game_type = environment_data.get("game_type", "Normal")
 
         # Parse state initial parameters
@@ -271,14 +277,20 @@ class State:
         rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
         return agent_score - rival_agent_score
 
+    # TODO: Sean Idea
+    # def _semi_cooperative_score(self, agent_idx: int):
+    #     agent_score = self.agents[agent_idx]["score"]
+    #     rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
+    #     score_dict = {
+    #         agent_idx: agent_score,
+    #         (agent_idx + 1) % 2: rival_agent_score
+    #     }
+    #     return score_dict
+
     def _semi_cooperative_score(self, agent_idx: int):
         agent_score = self.agents[agent_idx]["score"]
         rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
-        score_dict = {
-            agent_idx: agent_score,
-            (agent_idx + 1) % 2: rival_agent_score
-        }
-        return score_dict
+        return agent_score + 0.5 * rival_agent_score
 
     def _fully_cooperative_score(self, agent_idx: int = 0):
         agent_score = self.agents[agent_idx]["score"]
@@ -393,7 +405,8 @@ class State:
                 raise ValueError("Invalid agent type")
 
         print_data += "\n"
-        print_data += f"#T {self.time} ; Total Time unit passed: {self.time}"
+        print_data += f"#T {self.time} ; Total Time unit passed: {self.time}\n"
+        print_data += f"#G {self.game_type_to_idx[self.game_type]} ; Game Type: {self.game_type}"
 
         return print_data
 
