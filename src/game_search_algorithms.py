@@ -210,14 +210,14 @@ class GameAlgorithms:
         for child in game_node.children:
             action = child.action
 
-            max_value = self.max_max_value(game_node=child)
+            max_value = self.maximax_value(game_node=child)
             if global_max_value < max_value:
                 global_max_action = action
                 global_max_value = max_value
 
         return global_max_action
 
-    def max_max_value(self, game_node: GameNode) -> int:
+    def maximax_value(self, game_node: GameNode) -> int:
         if game_node.state.is_goal_state():
             max_max_value = game_node.state.game_mode_score(agent_idx=game_node.state.agent_idx)
             return max_max_value
@@ -225,7 +225,7 @@ class GameAlgorithms:
         max_max_value = -np.inf
         game_node.expand()
         for child in game_node.children:
-            max_value = self.max_max_value(game_node=child)
+            max_value = self.maximax_value(game_node=child)
             max_max_value = max(max_max_value, max_value)
 
         # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
@@ -241,7 +241,7 @@ class GameAlgorithms:
                 node_type="min" if game_node.node_type == "max" else "max"
             )
 
-            max_value = self.max_max_value(game_node=child)
+            max_value = self.maximax_value(game_node=child)
             max_max_value = max(max_max_value, max_value)
 
         return max_max_value
