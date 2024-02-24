@@ -7,10 +7,9 @@ class Parser:
             "packages": list(),
             "special_edges": list(),
             "agents": list(),
-            "game_type": "Normal"
+            "game_type": "Adversarial (zero sum game)"
         }
         self.game_types = {
-            "0": "Normal",
             "1": "Adversarial (zero sum game)",
             "2": "A semi-cooperative game",
             "3": "A fully cooperative game"
@@ -22,11 +21,6 @@ class Parser:
             "#B": self._handle_b,
             "#F": self._handle_f,
             "#A": self._handle_a,
-            "#H": self._handle_h,
-            "#I": self._handle_i,
-            # "#A1": self._handle_a1,
-            # "#A2": self._handle_a2,
-            # "#A3": self._handle_a3,
             "#G": self._handle_g
         }
 
@@ -74,51 +68,6 @@ class Parser:
             "number_of_actions": 0
         }
         self.parsed_data["agents"].append(agent)
-
-    def _handle_h(self, line_data_args):
-        agent = {
-            "type": "Human",
-            "location": [int(line_data_args[1]), int(line_data_args[2])]
-        }
-        self.parsed_data["agents"].append(agent)
-
-    def _handle_i(self, line_data_args):
-        agent = {
-            "type": "Interfering",
-            "location": [int(line_data_args[1]), int(line_data_args[2])],
-            "number_of_actions": 0
-        }
-        self.parsed_data["agents"].append(agent)
-
-    # def _handle_a1(self, line_data_args):
-    #     agent = {
-    #         "type": "Greedy",
-    #         "location": [int(line_data_args[1]), int(line_data_args[2])],
-    #         "score": 0,
-    #         "packages": list(),
-    #         "number_of_actions": 0
-    #     }
-    #     self.parsed_data["agents"].append(agent)
-    #
-    # def _handle_a2(self, line_data_args):
-    #     agent = {
-    #         "type": "A Star",
-    #         "location": [int(line_data_args[1]), int(line_data_args[2])],
-    #         "score": 0,
-    #         "packages": list(),
-    #         "number_of_actions": 0
-    #     }
-    #     self.parsed_data["agents"].append(agent)
-    #
-    # def _handle_a3(self, line_data_args):
-    #     agent = {
-    #         "type": "Real time A Star",
-    #         "location": [int(line_data_args[1]), int(line_data_args[2])],
-    #         "score": 0,
-    #         "packages": list(),
-    #         "number_of_actions": 0
-    #     }
-    #     self.parsed_data["agents"].append(agent)
 
     def _handle_g(self, line_data_args):
         self.parsed_data["game_type"] = self.game_types[line_data_args[1]]

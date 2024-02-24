@@ -58,12 +58,9 @@ class Simulator:
                 self.no_op_count += 1
 
             # Raise clock by one
-            if agent_type != "Human":
-                self.current_state = self.current_state.clone_state(agent_idx=agent_idx, time_factor=1)
-                self.current_state.update_packages_info()
-                print(f"# Clock Time {self.current_state.time}:")
-            else:
-                print("Notice: Human action doesn't effect the Clock Time!")
+            self.current_state = self.current_state.clone_state(agent_idx=agent_idx, time_factor=1)
+            self.current_state.update_packages_info()
+            print(f"# Clock Time {self.current_state.time}:")
 
             agent_idx = (agent_idx + 1) % len(self.current_state.agents)
 

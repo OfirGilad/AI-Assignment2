@@ -6,18 +6,16 @@ class State:
     def __init__(self, environment_data: dict):
         # Game support
         self.game_score_types = {
-            "Normal": self._normal_score,
             "Adversarial (zero sum game)": self._adversarial_score,
             "A semi-cooperative game": self._semi_cooperative_score,
             "A fully cooperative game": self._fully_cooperative_score
         }
         self.game_type_to_idx = {
-            "Normal": 0,
             "Adversarial (zero sum game)": 1,
             "A semi-cooperative game": 2,
             "A fully cooperative game": 3
         }
-        self.game_type = environment_data.get("game_type", "Normal")
+        self.game_type = environment_data.get("game_type", "Adversarial (zero sum game)")
 
         # Parse state initial parameters
         self.X = environment_data["x"] + 1
@@ -269,9 +267,6 @@ class State:
     def is_goal_state(self):
         return len(self.packages) == 0 and len(self.placed_packages) == 0 and len(self.picked_packages) == 0
 
-    def _normal_score(self, agent_idx: int):
-        raise ValueError("Score is not available in this game mode")
-
     def _adversarial_score(self, agent_idx: int):
         agent_score = self.agents[agent_idx]["score"]
         rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
@@ -341,14 +336,7 @@ class State:
                 raise ValueError("Invalid edge type")
 
         for agent_idx, agent in enumerate(self.agents):
-            if agent["type"] == "Human":
-                a_location = agent["location"]
-                print_data += (
-                    f"#A 0  L ({a_location[0]},{a_location[1]}) ; "
-                    f"Agent {agent_idx}: Human agent "
-                    f"Location: ({a_location[0]} {a_location[1]})\n"
-                )
-            elif agent["type"] == "Normal":
+            if agent["type"] == "Normal":
                 a_location = agent["location"]
                 a_score = agent["score"]
                 a_actions = agent["number_of_actions"]
@@ -359,48 +347,6 @@ class State:
                     f"Number of actions: {a_actions}, "
                     f"Score: {a_score}\n"
                 )
-            elif agent["type"] == "Interfering":
-                a_location = agent["location"]
-                a_actions = agent["number_of_actions"]
-                print_data += (
-                    f"#A 2  L ({a_location[0]},{a_location[1]})  A {a_actions} ; "
-                    f"Agent {agent_idx}: Interfering Agent, "
-                    f"Location: ({a_location[0]},{a_location[1]}), "
-                    f"Number of Actions: {a_actions}\n"
-                )
-            # elif agent["type"] == "Greedy":
-            #     a_location = agent["location"]
-            #     a_score = agent["score"]
-            #     a_actions = agent["number_of_actions"]
-            #     print_data += (
-            #         f"#A 3  L {a_location[0]} {a_location[1]}  A {a_actions}  S {a_score} ; "
-            #         f"Agent {agent_idx}: Greedy agent, "
-            #         f"Location: ({a_location[0]},{a_location[1]}), "
-            #         f"Number of actions: {a_actions}, "
-            #         f"Score: {a_score}\n"
-            #     )
-            # elif agent["type"] == "A Star":
-            #     a_location = agent["location"]
-            #     a_score = agent["score"]
-            #     a_actions = agent["number_of_actions"]
-            #     print_data += (
-            #         f"#A 4  L {a_location[0]} {a_location[1]}  A {a_actions}  S {a_score} ; "
-            #         f"Agent {agent_idx}: A Star agent, "
-            #         f"Location: ({a_location[0]},{a_location[1]}), "
-            #         f"Number of actions: {a_actions}, "
-            #         f"Score: {a_score}\n"
-            #     )
-            # elif agent["type"] == "Real time A Star":
-            #     a_location = agent["location"]
-            #     a_score = agent["score"]
-            #     a_actions = agent["number_of_actions"]
-            #     print_data += (
-            #         f"#A 5  L {a_location[0]} {a_location[1]}  A {a_actions}  S {a_score} ; "
-            #         f"Agent {agent_idx}: Real time A Star agent, "
-            #         f"Location: ({a_location[0]} {a_location[1]}), "
-            #         f"Number of actions: {a_actions}, "
-            #         f"Score: {a_score}\n"
-            #     )
             else:
                 raise ValueError("Invalid agent type")
 
