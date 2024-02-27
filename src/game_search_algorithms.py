@@ -113,10 +113,12 @@ class GameAlgorithms:
             if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
                 max_action = action
                 max_dict = min_dict
-            elif min_dict[self.agent_idx] == max_dict[self.agent_idx] and max_dict[self.rival_agent_idx] < min_dict[self.rival_agent_idx]:
+            elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
                 # Tie breaker
                 max_action = action
                 max_dict[self.rival_agent_idx] = min_dict[self.rival_agent_idx]
+            else:
+                continue
 
         return max_action
 

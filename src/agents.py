@@ -67,8 +67,9 @@ class Agent:
 
         game_algorithms = GameAlgorithms(agent_idx=self.agent_idx)
         # TODO: Sean Idea
-        # action = game_algorithms.semi_cooperative_decision(game_node=game_node)
-        action = game_algorithms.alpha_beta_decision(game_node=game_node)
+        action = game_algorithms.semi_cooperative_decision(game_node=game_node)
+        # TODO: Ofir Idea
+        # action = game_algorithms.alpha_beta_decision(game_node=game_node)
 
         # Handle action
         if action != "no-op":
