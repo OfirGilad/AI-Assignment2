@@ -113,11 +113,30 @@ class GameAlgorithms:
             if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
                 max_action = action
                 max_dict = min_dict
-            elif min_dict[self.agent_idx] == max_dict[self.agent_idx] and max_dict[self.rival_agent_idx] < min_dict[self.rival_agent_idx]:
+            elif min_dict[self.agent_idx] == max_dict[self.agent_idx] :
                 # Tie breaker
                 max_action = action
-                max_dict[self.rival_agent_idx] = min_dict[self.rival_agent_idx]
+                max_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx],min_dict[self.rival_agent_idx])
+    
+        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
+        if len(game_node.children) == 0:
+            node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
+            node_state.update_agent_packages_status()
 
+            node_state.agent_idx = (node_state.agent_idx + 1) % 2
+            child = GameNode(
+                state=node_state,
+                parent=game_node,
+                action="no-op",
+                node_type="min" if game_node.node_type == "max" else "max"
+            )
+
+            min_dict = self.min_value_semi_cooperative(game_node=child)
+            if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
+                max_dict = min_dict
+            elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
+                # Tie breaker
+                max_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
         return max_action
 
     def max_value_semi_cooperative(self, game_node: GameNode) -> dict:
