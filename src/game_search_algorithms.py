@@ -40,12 +40,10 @@ class GameAlgorithms:
             min_value = self.min_value(game_node=child, alpha=alpha, beta=beta)
             max_value = max(max_value, min_value)
 
-            # TODO: Check if this is correct
             if max_value >= beta:
                 return max_value
             alpha = max(alpha, max_value)
 
-        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
         if len(game_node.children) == 0:
             node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
             node_state.update_agent_packages_status()
@@ -54,8 +52,7 @@ class GameAlgorithms:
             child = GameNode(
                 state=node_state,
                 parent=game_node,
-                action="no-op",
-                node_type="min" if game_node.node_type == "max" else "max"
+                action="no-op"
             )
 
             min_value = self.min_value(game_node=child, alpha=alpha, beta=beta)
@@ -74,12 +71,10 @@ class GameAlgorithms:
             max_value = self.max_value(game_node=child, alpha=alpha, beta=beta)
             min_value = min(min_value, max_value)
 
-            # TODO: Check if this is correct
             if min_value <= alpha:
                 return min_value
             beta = min(beta, min_value)
 
-        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
         if len(game_node.children) == 0:
             node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
             node_state.update_agent_packages_status()
@@ -88,8 +83,7 @@ class GameAlgorithms:
             child = GameNode(
                 state=node_state,
                 parent=game_node,
-                action="no-op",
-                node_type="min" if game_node.node_type == "max" else "max"
+                action="no-op"
             )
 
             max_value = self.max_value(game_node=child, alpha=alpha, beta=beta)
@@ -140,7 +134,6 @@ class GameAlgorithms:
                 # Tie breaker
                 max_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
 
-        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
         if len(game_node.children) == 0:
             node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
             node_state.update_agent_packages_status()
@@ -149,8 +142,7 @@ class GameAlgorithms:
             child = GameNode(
                 state=node_state,
                 parent=game_node,
-                action="no-op",
-                node_type="min" if game_node.node_type == "max" else "max"
+                action="no-op"
             )
 
             min_dict = self.min_value_semi_cooperative(game_node=child)
@@ -180,7 +172,6 @@ class GameAlgorithms:
                 # Tie breaker
                 min_dict[self.rival_agent_idx] = max(max_dict[self.rival_agent_idx], min_dict[self.rival_agent_idx])
 
-        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
         if len(game_node.children) == 0:
             node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
             node_state.update_agent_packages_status()
@@ -189,8 +180,7 @@ class GameAlgorithms:
             child = GameNode(
                 state=node_state,
                 parent=game_node,
-                action="no-op",
-                node_type="min" if game_node.node_type == "max" else "max"
+                action="no-op"
             )
 
             max_dict = self.max_value_semi_cooperative(game_node=child)
@@ -230,7 +220,6 @@ class GameAlgorithms:
             max_value = self.maximax_value(game_node=child)
             max_max_value = max(max_max_value, max_value)
 
-        # TODO: when len(game_node.children) == 0 need to pass the turn to the other agent
         if len(game_node.children) == 0:
             node_state = game_node.state.clone_state(agent_idx=self.agent_idx, time_factor=1)
             node_state.update_agent_packages_status()
@@ -239,8 +228,7 @@ class GameAlgorithms:
             child = GameNode(
                 state=node_state,
                 parent=game_node,
-                action="no-op",
-                node_type="min" if game_node.node_type == "max" else "max"
+                action="no-op"
             )
 
             max_value = self.maximax_value(game_node=child)
