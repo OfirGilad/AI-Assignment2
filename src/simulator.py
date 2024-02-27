@@ -4,7 +4,8 @@ from state import State
 
 class Simulator:
     def __init__(self, initial_state: State):
-        self.delivery_agents = ["Normal", "Greedy", "A Star", "Real time A Star"]
+        # self.delivery_agents = ["Normal", "Greedy", "A Star", "Real time A Star"]
+        self.delivery_agents = ["Normal"]
         self.no_op_count = 0
         self.normal_agents_count = len([
             agent for agent in initial_state.agents if agent["type"] in self.delivery_agents
@@ -38,11 +39,12 @@ class Simulator:
     def run(self):
         agent_idx = 0
         print("# Clock Time 0.0:")
-        while True:
-            # Check if goal achieved
-            if self._goal_achieved():
-                break
 
+        # Check if goal achieved
+        if self._goal_achieved():
+            return
+
+        while True:
             # Perform Agent Action
             self.current_state = self.current_state.clone_state(agent_idx=agent_idx)
             current_agent = Agent(state=self.current_state)
@@ -56,11 +58,15 @@ class Simulator:
                 self.no_op_count += 1
 
             # Raise clock by one
-            if agent_type != "Human":
-                self.current_state = self.current_state.clone_state(agent_idx=agent_idx, time_factor=1)
-                self.current_state.update_packages_info()
-                print(f"# Clock Time {self.current_state.time}:")
-                agent_idx = (agent_idx + 1) % len(self.current_state.agents)
+            self.current_state = self.current_state.clone_state(agent_idx=agent_idx, time_factor=1)
+            self.current_state.update_packages_info()
+            print(f"# Clock Time {self.current_state.time}:")
+
+            agent_idx = (agent_idx + 1) % len(self.current_state.agents)
+
+            # Check if goal achieved
+            if self._goal_achieved():
+                return
 
             # Rest no-op actions
             if agent_idx == 0:

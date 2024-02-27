@@ -4,6 +4,19 @@ from copy import deepcopy
 
 class State:
     def __init__(self, environment_data: dict):
+        # Game support
+        self.game_score_types = {
+            "Adversarial (zero sum game)": self._adversarial_score,
+            "A semi-cooperative game": self._semi_cooperative_score,
+            "A fully cooperative game": self._fully_cooperative_score
+        }
+        self.game_type_to_idx = {
+            "Adversarial (zero sum game)": 1,
+            "A semi-cooperative game": 2,
+            "A fully cooperative game": 3
+        }
+        self.game_type = environment_data.get("game_type", "Adversarial (zero sum game)")
+
         # Parse state initial parameters
         self.X = environment_data["x"] + 1
         self.Y = environment_data["y"] + 1
@@ -71,7 +84,7 @@ class State:
         self._apply_special_edges()
 
     def update_packages_info(self):
-        current_packages = self.packages
+        current_packages = deepcopy(self.packages)
         for package in current_packages:
             if package["from_time"] <= self.time:
                 self.packages.remove(package)
@@ -80,7 +93,7 @@ class State:
 
                 self.placed_packages.append(package)
 
-        current_placed_packages = self.placed_packages
+        current_placed_packages = deepcopy(self.placed_packages)
         for package in current_placed_packages:
             if package["before_time"] <= self.time:
                 self.placed_packages.remove(package)
@@ -89,7 +102,7 @@ class State:
 
                 self.archived_packages.append(package)
 
-        current_picked_packages = self.picked_packages
+        current_picked_packages = deepcopy(self.picked_packages)
         for package in current_picked_packages:
             if package["before_time"] <= self.time:
                 self.picked_packages.remove(package)
@@ -106,7 +119,7 @@ class State:
 
     def update_agent_packages_status(self):
         agent_data = self.agents[self.agent_idx]
-        current_placed_packages = self.placed_packages
+        current_placed_packages = deepcopy(self.placed_packages)
         for package in current_placed_packages:
             if package["package_at"] == agent_data["location"]:
                 self.placed_packages.remove(package)
@@ -117,8 +130,12 @@ class State:
                 agent_data["packages"].append(package)
                 self.picked_packages.append(package)
 
-        current_pickup_packages = self.picked_packages
+        current_pickup_packages = deepcopy(self.picked_packages)
         for package in current_pickup_packages:
+            # Skip packages not picked by this agent
+            if package["holder_agent_id"] != self.agent_idx:
+                continue
+
             if package["deliver_to"] == agent_data["location"]:
                 agent_data["packages"].remove(package)
                 self.picked_packages.remove(package)
@@ -135,7 +152,7 @@ class State:
         if mode == "Coords":
             current_vertex_index = self.coordinates_to_vertex_index(coords=current_vertex)
             next_vertex_index = self.coordinates_to_vertex_index(coords=next_vertex)
-            
+
         # The input vertices are indices of the vertices on the graph
         elif mode == "Indices":
             current_vertex_index = current_vertex
@@ -247,6 +264,38 @@ class State:
 
         self.perform_agent_step(current_vertex, next_vertex, mode=mode)
 
+    def is_goal_state(self):
+        return len(self.packages) == 0 and len(self.placed_packages) == 0 and len(self.picked_packages) == 0
+
+    def _adversarial_score(self, agent_idx: int):
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
+        return agent_score - rival_agent_score
+
+    # TODO: Sean Idea
+    def _semi_cooperative_score(self, agent_idx: int):
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
+        score_dict = {
+            agent_idx: agent_score,
+            (agent_idx + 1) % 2: rival_agent_score
+        }
+        return score_dict
+
+    # TODO: Ofir Idea
+    # def _semi_cooperative_score(self, agent_idx: int):
+    #     agent_score = self.agents[agent_idx]["score"]
+    #     rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
+    #     return agent_score + 0.5 * rival_agent_score
+
+    def _fully_cooperative_score(self, agent_idx: int = 0):
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
+        return agent_score + rival_agent_score
+
+    def game_mode_score(self, agent_idx: int):
+        return self.game_score_types[self.game_type](agent_idx=agent_idx)
+
     def __str__(self):
         # Coordinates
         print_data = (
@@ -288,58 +337,14 @@ class State:
                 raise ValueError("Invalid edge type")
 
         for agent_idx, agent in enumerate(self.agents):
-            if agent["type"] == "Human":
-                print_data += f"#A 0 ; Agent {agent_idx}: Human agent\n"
-            elif agent["type"] == "Normal":
+            if agent["type"] == "Normal":
                 a_location = agent["location"]
                 a_score = agent["score"]
                 a_actions = agent["number_of_actions"]
                 print_data += (
                     f"#A 1  L ({a_location[0]},{a_location[1]})  A {a_actions}  S {a_score} ; "
                     f"Agent {agent_idx}: Normal agent, "
-                    f"Location: {a_location[0]} {a_location[1]}, "
-                    f"Number of actions: {a_actions}, "
-                    f"Score: {a_score}\n"
-                )
-            elif agent["type"] == "Interfering":
-                a_location = agent["location"]
-                a_actions = agent["number_of_actions"]
-                print_data += (
-                    f"#A 2  A {a_actions} ; "
-                    f"Agent {agent_idx}: Interfering Agent, "
-                    f"Location: ({a_location[0]},{a_location[1]}), "
-                    f"Number of Actions: {a_actions}\n"
-                )
-            elif agent["type"] == "Greedy":
-                a_location = agent["location"]
-                a_score = agent["score"]
-                a_actions = agent["number_of_actions"]
-                print_data += (
-                    f"#A 3  L {a_location[0]} {a_location[1]}  A {a_actions}  S {a_score} ; "
-                    f"Agent {agent_idx}: Greedy agent, "
-                    f"Location: ({a_location[0]},{a_location[1]}), "
-                    f"Number of actions: {a_actions}, "
-                    f"Score: {a_score}\n"
-                )
-            elif agent["type"] == "A Star":
-                a_location = agent["location"]
-                a_score = agent["score"]
-                a_actions = agent["number_of_actions"]
-                print_data += (
-                    f"#A 4  L {a_location[0]} {a_location[1]}  A {a_actions}  S {a_score} ; "
-                    f"Agent {agent_idx}: A Star agent, "
-                    f"Location: ({a_location[0]},{a_location[1]}), "
-                    f"Number of actions: {a_actions}, "
-                    f"Score: {a_score}\n"
-                )
-            elif agent["type"] == "Real time A Star":
-                a_location = agent["location"]
-                a_score = agent["score"]
-                a_actions = agent["number_of_actions"]
-                print_data += (
-                    f"#A 5  L {a_location[0]} {a_location[1]}  A {a_actions}  S {a_score} ; "
-                    f"Agent {agent_idx}: Real time A Star agent, "
-                    f"Location: {a_location[0]} {a_location[1]}, "
+                    f"Location: ({a_location[0]} {a_location[1]}), "
                     f"Number of actions: {a_actions}, "
                     f"Score: {a_score}\n"
                 )
@@ -347,8 +352,9 @@ class State:
                 raise ValueError("Invalid agent type")
 
         print_data += "\n"
-        print_data += f"#T {self.time} ; Total Time unit passed: {self.time}"
-       
+        print_data += f"#T {self.time} ; Total Time unit passed: {self.time}\n"
+        print_data += f"#G {self.game_type_to_idx[self.game_type]} ; Game Type: {self.game_type}"
+
         return print_data
 
     def clone_state(self, agent_idx: int, time_factor: float = 0):
@@ -362,6 +368,7 @@ class State:
             "time": self.time + time_factor,
             "placed_packages": deepcopy(self.placed_packages),
             "picked_packages": deepcopy(self.picked_packages),
-            "archived_packages": deepcopy(self.archived_packages)
+            "archived_packages": deepcopy(self.archived_packages),
+            "game_type": self.game_type
         }
         return State(environment_data=environment_data)
