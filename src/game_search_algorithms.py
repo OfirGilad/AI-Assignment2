@@ -7,8 +7,7 @@ class GameAlgorithms:
     def __init__(self, agent_idx: int):
         self.agent_idx = agent_idx
         self.rival_agent_idx = (self.agent_idx + 1) % 2
-        self.semi_cooperative = False
-
+        self.cutOff_threshold = 8
     ###############
     # Adversarial #
     ###############
@@ -22,22 +21,22 @@ class GameAlgorithms:
         for child in game_node.children:
             action = child.action
 
-            min_value = self.min_value(game_node=child, alpha=alpha, beta=beta)
+            min_value = self.min_value(game_node=child, alpha=alpha, beta=beta,cutOff_threshold=self.cutOff_threshold-1)
             if max_value < min_value:
                 max_action = action
                 max_value = min_value
 
         return max_action
 
-    def max_value(self, game_node: GameNode, alpha, beta) -> int:
-        if game_node.state.is_goal_state():
+    def max_value(self, game_node: GameNode, alpha, beta,cutOff_threshold) -> int:
+        if game_node.state.is_goal_state() or cutOff_threshold <= 0:
             max_value = game_node.state.game_mode_score(agent_idx=self.agent_idx)
             return max_value
 
         max_value = -np.inf
         game_node.expand()
         for child in game_node.children:
-            min_value = self.min_value(game_node=child, alpha=alpha, beta=beta)
+            min_value = self.min_value(game_node=child, alpha=alpha, beta=beta,cutOff_threshold=cutOff_threshold-1)
             max_value = max(max_value, min_value)
 
             if max_value >= beta:
@@ -55,20 +54,20 @@ class GameAlgorithms:
                 action="no-op"
             )
 
-            min_value = self.min_value(game_node=child, alpha=alpha, beta=beta)
+            min_value = self.min_value(game_node=child, alpha=alpha, beta=beta,cutOff_threshold=cutOff_threshold-1)
             max_value = max(max_value, min_value)
 
         return max_value
 
-    def min_value(self, game_node: GameNode, alpha, beta) -> int:
-        if game_node.state.is_goal_state():
+    def min_value(self, game_node: GameNode, alpha, beta, cutOff_threshold) -> int:
+        if game_node.state.is_goal_state() or cutOff_threshold <= 0:
             min_value = game_node.state.game_mode_score(agent_idx=self.agent_idx)
             return min_value
 
         min_value = np.inf
         game_node.expand()
         for child in game_node.children:
-            max_value = self.max_value(game_node=child, alpha=alpha, beta=beta)
+            max_value = self.max_value(game_node=child, alpha=alpha, beta=beta,cutOff_threshold=cutOff_threshold-1)
             min_value = min(min_value, max_value)
 
             if min_value <= alpha:
@@ -86,7 +85,7 @@ class GameAlgorithms:
                 action="no-op"
             )
 
-            max_value = self.max_value(game_node=child, alpha=alpha, beta=beta)
+            max_value = self.max_value(game_node=child, alpha=alpha, beta=beta,cutOff_threshold=cutOff_threshold-1)
             min_value = min(min_value, max_value)
 
         return min_value
@@ -103,7 +102,7 @@ class GameAlgorithms:
         game_node.expand()
         for child in game_node.children:
             action = child.action
-            min_dict = self.min_value_semi_cooperative(game_node=child)
+            min_dict = self.min_value_semi_cooperative(game_node=child,cutOff_threshold = self.cutOff_threshold-1)
             if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
                 max_action = action
                 max_dict = min_dict
@@ -116,8 +115,8 @@ class GameAlgorithms:
 
         return max_action
 
-    def max_value_semi_cooperative(self, game_node: GameNode) -> dict:
-        if game_node.state.is_goal_state():
+    def max_value_semi_cooperative(self, game_node: GameNode, cutOff_threshold:int ) -> dict:
+        if game_node.state.is_goal_state() or cutOff_threshold <= 0:
             max_dict = game_node.state.game_mode_score(agent_idx=self.agent_idx)
             return max_dict
 
@@ -127,7 +126,7 @@ class GameAlgorithms:
         }
         game_node.expand()
         for child in game_node.children:
-            min_dict = self.min_value_semi_cooperative(game_node=child)
+            min_dict = self.min_value_semi_cooperative(game_node=child,cutOff_threshold = cutOff_threshold-1)
             if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
                 max_dict = min_dict
             elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
@@ -145,7 +144,7 @@ class GameAlgorithms:
                 action="no-op"
             )
 
-            min_dict = self.min_value_semi_cooperative(game_node=child)
+            min_dict = self.min_value_semi_cooperative(game_node=child,cutOff_threshold = cutOff_threshold-1)
             if min_dict[self.agent_idx] > max_dict[self.agent_idx]:
                 max_dict = min_dict
             elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
@@ -154,8 +153,8 @@ class GameAlgorithms:
 
         return max_dict
 
-    def min_value_semi_cooperative(self, game_node: GameNode) -> dict:
-        if game_node.state.is_goal_state():
+    def min_value_semi_cooperative(self, game_node: GameNode, cutOff_threshold:int) -> dict:
+        if game_node.state.is_goal_state() or cutOff_threshold <= 0:
             min_dict = game_node.state.game_mode_score(agent_idx=self.agent_idx)
             return min_dict
 
@@ -165,7 +164,7 @@ class GameAlgorithms:
         }
         game_node.expand()
         for child in game_node.children:
-            max_dict = self.max_value_semi_cooperative(game_node=child)
+            max_dict = self.max_value_semi_cooperative(game_node=child,cutOff_threshold = cutOff_threshold-1)
             if min_dict[self.agent_idx] < max_dict[self.agent_idx]:
                 min_dict = max_dict
             elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
@@ -183,7 +182,7 @@ class GameAlgorithms:
                 action="no-op"
             )
 
-            max_dict = self.max_value_semi_cooperative(game_node=child)
+            max_dict = self.max_value_semi_cooperative(game_node=child,cutOff_threshold = cutOff_threshold-1)
             if min_dict[self.agent_idx] < max_dict[self.agent_idx]:
                 min_dict = max_dict
             elif min_dict[self.agent_idx] == max_dict[self.agent_idx]:
@@ -202,22 +201,22 @@ class GameAlgorithms:
         for child in game_node.children:
             action = child.action
 
-            max_value = self.maximax_value(game_node=child)
+            max_value = self.maximax_value(game_node=child,cutOff_threshold = self.cutOff_threshold-1)
             if global_max_value < max_value:
                 global_max_action = action
                 global_max_value = max_value
 
         return global_max_action
 
-    def maximax_value(self, game_node: GameNode) -> int:
-        if game_node.state.is_goal_state():
+    def maximax_value(self, game_node: GameNode,cutOff_threshold:int) -> int:
+        if game_node.state.is_goal_state() or cutOff_threshold <= 0:
             max_max_value = game_node.state.game_mode_score(agent_idx=game_node.state.agent_idx)
             return max_max_value
 
         max_max_value = -np.inf
         game_node.expand()
         for child in game_node.children:
-            max_value = self.maximax_value(game_node=child)
+            max_value = self.maximax_value(game_node=child,cutOff_threshold=cutOff_threshold-1)
             max_max_value = max(max_max_value, max_value)
 
         if len(game_node.children) == 0:
@@ -231,7 +230,7 @@ class GameAlgorithms:
                 action="no-op"
             )
 
-            max_value = self.maximax_value(game_node=child)
+            max_value = self.maximax_value(game_node=child,cutOff_threshold=cutOff_threshold-1)
             max_max_value = max(max_max_value, max_value)
 
         return max_max_value

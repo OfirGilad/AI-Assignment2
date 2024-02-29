@@ -272,7 +272,7 @@ class State:
         rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
         return agent_score - rival_agent_score
 
-    # TODO: Sean Idea
+   
     def _semi_cooperative_score(self, agent_idx: int):
         agent_score = self.agents[agent_idx]["score"]
         rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
@@ -282,11 +282,6 @@ class State:
         }
         return score_dict
 
-    # TODO: Ofir Idea
-    # def _semi_cooperative_score(self, agent_idx: int):
-    #     agent_score = self.agents[agent_idx]["score"]
-    #     rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
-    #     return agent_score + 0.5 * rival_agent_score
 
     def _fully_cooperative_score(self, agent_idx: int = 0):
         agent_score = self.agents[agent_idx]["score"]
