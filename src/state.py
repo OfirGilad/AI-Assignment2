@@ -10,6 +10,11 @@ class State:
             "A semi-cooperative game": self._semi_cooperative_score,
             "A fully cooperative game": self._fully_cooperative_score
         }
+        self.game_cutoff_score_types = {
+            "Adversarial (zero sum game)": self._adversarial_cutoff_score,
+            "A semi-cooperative game": self._semi_cooperative_cutoff_score,
+            "A fully cooperative game": self._fully_cooperative_cutoff_score
+        }
         self.game_type_to_idx = {
             "Adversarial (zero sum game)": 1,
             "A semi-cooperative game": 2,
@@ -268,28 +273,84 @@ class State:
         return len(self.packages) == 0 and len(self.placed_packages) == 0 and len(self.picked_packages) == 0
 
     def _adversarial_score(self, agent_idx: int):
-        agent_score = self.agents[agent_idx]["score"]
-        rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
-        return agent_score - rival_agent_score
+        rival_agent_idx = (agent_idx + 1) % 2
 
-   
-    def _semi_cooperative_score(self, agent_idx: int):
         agent_score = self.agents[agent_idx]["score"]
-        rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
+        rival_agent_score = self.agents[rival_agent_idx]["score"]
+
+        score = (agent_score - rival_agent_score)
+        return score
+
+    def _adversarial_cutoff_score(self, agent_idx: int):
+        rival_agent_idx = (agent_idx + 1) % 2
+
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[rival_agent_idx]["score"]
+        agent_sub_score = len(self.agents[agent_idx]["packages"])
+        rival_agent_sub_score = len(self.agents[rival_agent_idx]["packages"])
+
+        score = (
+            (agent_score - rival_agent_score) +
+            0.5 * (agent_sub_score - rival_agent_sub_score)
+        )
+        return score
+
+    def _semi_cooperative_score(self, agent_idx: int):
+        rival_agent_idx = (agent_idx + 1) % 2
+
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[rival_agent_idx]["score"]
+
         score_dict = {
             agent_idx: agent_score,
-            (agent_idx + 1) % 2: rival_agent_score
+            rival_agent_idx: rival_agent_score
         }
         return score_dict
 
+    def _semi_cooperative_cutoff_score(self, agent_idx: int):
+        rival_agent_idx = (agent_idx + 1) % 2
+
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[rival_agent_idx]["score"]
+        agent_sub_score = len(self.agents[agent_idx]["packages"])
+        rival_agent_sub_score = len(self.agents[rival_agent_idx]["packages"])
+
+        score_dict = {
+            agent_idx: agent_score + 0.5 * agent_sub_score,
+            rival_agent_idx: rival_agent_score + 0.5 * rival_agent_sub_score
+        }
+        return score_dict
 
     def _fully_cooperative_score(self, agent_idx: int = 0):
-        agent_score = self.agents[agent_idx]["score"]
-        rival_agent_score = self.agents[(agent_idx + 1) % 2]["score"]
-        return agent_score + rival_agent_score
+        rival_agent_idx = (agent_idx + 1) % 2
 
-    def game_mode_score(self, agent_idx: int):
-        return self.game_score_types[self.game_type](agent_idx=agent_idx)
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[rival_agent_idx]["score"]
+
+        score = (agent_score + rival_agent_score)
+        return score
+
+    def _fully_cooperative_cutoff_score(self, agent_idx: int = 0):
+        rival_agent_idx = (agent_idx + 1) % 2
+
+        agent_score = self.agents[agent_idx]["score"]
+        rival_agent_score = self.agents[rival_agent_idx]["score"]
+        agent_sub_score = len(self.agents[agent_idx]["packages"])
+        rival_agent_sub_score = len(self.agents[rival_agent_idx]["packages"])
+        available_packages_score = len(self.packages) + len(self.placed_packages)
+
+        score = (
+            (agent_score + rival_agent_score) +
+            0.5 * (agent_sub_score + rival_agent_sub_score) +
+            0.25 * available_packages_score
+        )
+        return score
+
+    def game_mode_score(self, agent_idx: int, cutoff: bool):
+        if cutoff:
+            return self.game_cutoff_score_types[self.game_type](agent_idx=agent_idx)
+        else:
+            return self.game_score_types[self.game_type](agent_idx=agent_idx)
 
     def __str__(self):
         # Coordinates
