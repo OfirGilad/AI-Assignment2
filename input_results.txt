@@ -39,8 +39,8 @@ Final State:
 #E 0 ; Edge 6: always blocked
 #E 1 ; Edge 7: fragile
 #E 0 ; Edge 8: always blocked
-#A 1  L (2,1)  A 3  S 1 ; Agent 0: Normal agent, Location: (2 1), Number of actions: 3, Score: 1
-#A 1  L (2,2)  A 2  S 1 ; Agent 1: Normal agent, Location: (2 2), Number of actions: 2, Score: 1
+#A 1  L 2 1  A 3  S 1 ; Agent 0: Normal agent, Location: (2 1), Number of actions: 3, Score: 1
+#A 1  L 2 2  A 2  S 1 ; Agent 1: Normal agent, Location: (2 2), Number of actions: 2, Score: 1
 
 #T 8.0 ; Total Time unit passed: 8.0
 #G 1 ; Game Type: Adversarial (zero sum game)
@@ -108,8 +108,8 @@ Final State:
 #E 0 ; Edge 6: always blocked
 #E 0 ; Edge 7: always blocked
 #E 0 ; Edge 8: always blocked
-#A 1  L (0,2)  A 8  S 1 ; Agent 0: Normal agent, Location: (0 2), Number of actions: 8, Score: 1
-#A 1  L (1,1)  A 8  S 2 ; Agent 1: Normal agent, Location: (1 1), Number of actions: 8, Score: 2
+#A 1  L 0 2  A 8  S 1 ; Agent 0: Normal agent, Location: (0 2), Number of actions: 8, Score: 1
+#A 1  L 1 1  A 8  S 2 ; Agent 1: Normal agent, Location: (1 1), Number of actions: 8, Score: 2
 
 #T 20.0 ; Total Time unit passed: 20.0
 #G 2 ; Game Type: A semi-cooperative game
@@ -161,8 +161,8 @@ Final State:
 #E 0 ; Edge 6: always blocked
 #E 0 ; Edge 7: always blocked
 #E 0 ; Edge 8: always blocked
-#A 1  L (2,0)  A 6  S 1 ; Agent 0: Normal agent, Location: (2 0), Number of actions: 6, Score: 1
-#A 1  L (1,1)  A 6  S 3 ; Agent 1: Normal agent, Location: (1 1), Number of actions: 6, Score: 3
+#A 1  L 2 0  A 6  S 1 ; Agent 0: Normal agent, Location: (2 0), Number of actions: 6, Score: 1
+#A 1  L 1 1  A 6  S 3 ; Agent 1: Normal agent, Location: (1 1), Number of actions: 6, Score: 3
 
 #T 12.0 ; Total Time unit passed: 12.0
 #G 3 ; Game Type: A fully cooperative game
